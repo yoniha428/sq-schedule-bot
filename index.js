@@ -32,7 +32,7 @@ cron.schedule('* * * * *', async () => {
   // console.log(obj);
   for(let log of obj.log){
     if(log.count < log.format) continue;
-    if(now + 60 * 60 * 1000 > log.time && log.notified.in30min === 0){
+    if(now + 60 * 60 * 1000 > log.time && log.notified.in60min === 0){
       let message = '';
       for(const id of log.participants){
         message += (await client.users.fetch(id)).toString();
