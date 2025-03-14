@@ -69,7 +69,7 @@ client.on('messageCreate', async (message) => {
   if (message.channel.name !== 'sq-schedule') return;
   let content = message.content.split('\n');
   if(content.at(0).substring(0, 9) != '@everyone') return;
-  content = content.filter(s => s !== '@everyone');
+  content = content.filter(s => s.substring(0, 9) !== '@everyone');
   // console.log(content);
   let obj = JSON.parse(fs.readFileSync('./log.json', 'utf8'));
   const channel = message.channel;
