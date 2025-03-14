@@ -77,6 +77,7 @@ client.on('messageCreate', async (message) => {
     const jstTime = unixTime + 9 * 60 * 60 * 1000;
     const time = new Date(jstTime);
     const format = parseInt(s.at(10));
+    console.log(noNeedFormat, typeof noNeedFormat);
     if(noNeedFormat.includes(format)) continue;
     await channel.send(
       '# ' + String(time.getMonth() + 1) + '/' +
@@ -101,7 +102,7 @@ client.on('messageCreate', async (message) => {
     obj.log.push({
       id: sendRow.id,
       time: unixTime,
-      format: parseInt(s.at(10)),
+      format: format,
       count: 0,
       participants: [],
       notified: {
