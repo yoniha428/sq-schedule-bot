@@ -9,7 +9,7 @@ const client = new Client({
     GatewayIntentBits.GuildMembers
   ]
 });
-const { discordToken, notifyChannelId } = require('./config.json');
+const { discordToken, notifyChannelId, noNeedFormat } = require('./config.json');
 
 // 以下portを開けるための処理
 const http = require('http');
@@ -76,6 +76,8 @@ client.on('messageCreate', async (message) => {
     const unixTime = parseInt(s.substring(20, 30)) * 1000;
     const jstTime = unixTime + 9 * 60 * 60 * 1000;
     const time = new Date(jstTime);
+    const format = parseInt(s.at(10));
+    if(noNeedFormat.includes(format)) continue;
     await channel.send(
       '# ' + String(time.getMonth() + 1) + '/' +
       String(time.getDate()) + ' ' +
