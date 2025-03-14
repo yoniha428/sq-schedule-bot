@@ -124,6 +124,11 @@ client.on('interactionCreate', async (interaction) => {
         log.participants.push(userId);
         matchLog = log;
       }
+      if(!matchLog){
+        console.log(obj);
+        interaction.reply('インタラクションのメッセージIDにマッチするログが見つかりませんでした');
+        return;
+      }
       fs.writeFileSync('./log.json', JSON.stringify(obj, undefined, ' '));
       let participantsName = [];
       for(const id of matchLog.participants){
