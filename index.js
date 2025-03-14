@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
 const fs = require('fs');
 const cron = require('node-cron');
 const client = new Client({
@@ -131,7 +131,7 @@ client.on('interactionCreate', async (interaction) => {
       }
       if(!matchLog){
         console.log(obj);
-        interaction.reply('インタラクションのメッセージIDにマッチするログが見つかりませんでした');
+        interaction.reply({content: 'インタラクションのメッセージIDにマッチするログが見つかりませんでした', flags: MessageFlags.Ephemeral}) // ('インタラクションのメッセージIDにマッチするログが見つかりませんでした');
         return;
       }
       fs.writeFileSync('./log.json', JSON.stringify(obj, undefined, ' '));
