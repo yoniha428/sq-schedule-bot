@@ -1,5 +1,4 @@
 const { Client, GatewayIntentBits, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
-const { token } = require('./config.json');
 const fs = require('fs');
 const cron = require('node-cron');
 const client = new Client({
@@ -10,13 +9,15 @@ const client = new Client({
     GatewayIntentBits.GuildMembers
   ]
 });
+const { discordToken, notifyChannelId } = require('./config.json');
+
 
 // 毎分走る、通知用
 cron.schedule('* * * * *', async () => {
   console.log('cron running');
   let obj = JSON.parse(fs.readFileSync('./log.json', 'utf8'));
   const now = new Date().getTime();
-  const notifyChannel = client.channels.cache.find(channel => channel.name === 'general');
+  const notifyChannel = client.channels.resolve(notifyChannelId);
   // console.log(obj);
   obj.log = obj.log.filter(log => log.time > now);
   // console.log(obj);
@@ -144,4 +145,4 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
-client.login(token);
+client.login(discordToken);
