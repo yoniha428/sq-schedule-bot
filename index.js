@@ -50,7 +50,7 @@ cron.schedule('* * * * *', async () => {
         message += (await client.users.fetch(id)).toString();
       }
       message += '\n30分後に模擬があります！\n!cした？';
-      console.log(message);
+      // console.log(message);
       notifyChannel.send(message);
       log.notified.in30min = 1;
     }
@@ -68,9 +68,9 @@ client.on('messageCreate', async (message) => {
   if (message.author.id === client.user.id) return;
   if (message.channel.name !== 'sq-schedule') return;
   let content = message.content.split('\n');
-  if(content[0] != '@everyone') return;
+  if(content.at(0).substring(0, 9) != '@everyone') return;
   content = content.filter(s => s !== '@everyone');
-  console.log(content);
+  // console.log(content);
   let obj = JSON.parse(fs.readFileSync('./log.json', 'utf8'));
   const channel = message.channel;
   for(const s of content){
@@ -78,7 +78,7 @@ client.on('messageCreate', async (message) => {
     const jstTime = unixTime + 9 * 60 * 60 * 1000;
     const time = new Date(jstTime);
     const format = parseInt(s.at(10));
-    console.log(noNeedFormat, typeof noNeedFormat);
+    // console.log(noNeedFormat, typeof noNeedFormat);
     if(noNeedFormat.includes(format)) continue;
     await channel.send(
       '# ' + String(time.getMonth() + 1) + '/' +
@@ -138,7 +138,7 @@ client.on('interactionCreate', async (interaction) => {
       let participantsName = [];
       for(const id of matchLog.participants){
         const username = (await client.users.fetch(id)).username;
-        console.log(username);
+        // console.log(username);
         participantsName.push(username);
       }
       const content = '参加者: ' + participantsName.join(', ') + '\n参加人数: ' + matchLog.count + '/' + matchLog.format;
