@@ -70,6 +70,7 @@ client.on('messageCreate', async (message) => {
   let content = message.content.split('\n');
   if(content[0] != '@everyone') return;
   content = content.filter(s => s !== '@everyone');
+  console.log(content);
   let obj = JSON.parse(fs.readFileSync('./log.json', 'utf8'));
   const channel = message.channel;
   for(const s of content){
