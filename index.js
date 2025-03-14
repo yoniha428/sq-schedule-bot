@@ -63,13 +63,15 @@ client.once('ready', async() => {
   console.log(`${client.user.tag}で起動しました！`);
 });
 
-// sq-scheduleに送られた、このbot以外の発言を拾う
+// sq-scheduleに送られた、このbot以外の発言で、@everyoneしているものを拾う
 client.on('messageCreate', async (message) => {
   if (message.author.id === client.user.id) return;
   if (message.channel.name !== 'sq-schedule') return;
+  let content = message.content.split('\n');
+  if(content[0] != '@everyone') return;
+  content = content.filter(s => s !== '@everyone');
   let obj = JSON.parse(fs.readFileSync('./log.json', 'utf8'));
   const channel = message.channel;
-  let content = message.content.split('\n').filter(s => s[0] !== '@');
   for(const s of content){
     const unixTime = parseInt(s.substring(20, 30)) * 1000;
     const time = new Date(unixTime);
