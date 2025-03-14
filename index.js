@@ -74,7 +74,8 @@ client.on('messageCreate', async (message) => {
   const channel = message.channel;
   for(const s of content){
     const unixTime = parseInt(s.substring(20, 30)) * 1000;
-    const time = new Date(unixTime);
+    const jstTime = unixTime + 9 * 60 * 60 * 1000;
+    const time = new Date(jstTime);
     await channel.send(
       '# ' + String(time.getMonth() + 1) + '/' +
       String(time.getDate()) + ' ' +
