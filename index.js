@@ -11,6 +11,15 @@ const client = new Client({
 });
 const { discordToken, notifyChannelId } = require('./config.json');
 
+// 以下portを開けるための処理
+const http = require('http');
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.write('<h1>sq-schedule-bot</h1>');
+  res.end();
+});
+const port = process.env.PORT || 10000;
+server.listen(port);
 
 // 毎分走る、通知用
 cron.schedule('* * * * *', async () => {

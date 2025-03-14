@@ -11,6 +11,7 @@
   "description": "",
   "dependencies": {
     "discord.js": "^14.18.0",
+    "http": "^0.0.1-security",
     "node-cron": "^3.0.3"
   }
 }
