@@ -22,7 +22,7 @@ const port = process.env.PORT || 10000;
 server.listen(port);
 
 // 送信者だけに見えるreplyを作成
-function ephermeralReply(interaction, content){
+function ephemeralReply(interaction, content){
   interaction.reply({content: content, flags: MessageFlags.Ephemeral});
 }
 
@@ -140,6 +140,7 @@ client.on('interactionCreate', async (interaction) => {
 
   //ボタンのとき
   if (interaction.isButton()) {
+    await interaction.deferReply({flags: MessageFlags.Ephemeral});
 
     // joinボタンのとき
     if (interaction.customId === 'join') {
@@ -151,11 +152,11 @@ client.on('interactionCreate', async (interaction) => {
       const userId = interaction.member.user.id;
       for (let log of obj.log) if (log.id === interaction.message.id) {
         if (matchLog) {
-          ephermeralReply(interaction, '一致するメッセージIDがログに2つ以上あります。\n管理者に連絡してください。');
+          interaction.editReply({content: '一致するメッセージIDがログに2つ以上あります。\n管理者に連絡してください。'});
           return;
         }
         if (log.participants.includes(userId)) {
-          ephermeralReply(interaction, '既に参加しています');
+          interaction.editReply({content: '既に参加しています'});
           return;
         }
         log.count++;
@@ -164,7 +165,7 @@ client.on('interactionCreate', async (interaction) => {
       }
       if (!matchLog) {
         // console.log(obj);
-        ephermeralReply(interaction, 'メッセージIDに一致するログが見つかりませんでした。\n現在時刻以降の投票にも関わらずこのメッセージが表示されている場合は管理者に連絡してください。');
+        interaction.editReply({content: 'メッセージIDに一致するログが見つかりませんでした。\n現在時刻以降の投票にも関わらずこのメッセージが表示されている場合は管理者に連絡してください。'});
         return;
       }
 
@@ -177,7 +178,8 @@ client.on('interactionCreate', async (interaction) => {
         participantsName.push(username);
       }
       const content = escapeMarkdown('参加者: ' + participantsName.join(', ') + '\n参加人数: ' + matchLog.count + '/' + matchLog.format);
-      interaction.update({ content: content });
+      interaction.deleteReply();
+      interaction.message.edit({ content: content });
     }
     if (interaction.customId === 'drop') {
       // console.log(interaction.message.id);
@@ -187,11 +189,11 @@ client.on('interactionCreate', async (interaction) => {
       const userId = interaction.member.user.id;
       for (let log of obj.log) if (log.id === interaction.message.id) {
         if (matchLog) {
-          ephermeralReply(interaction, '一致するメッセージIDがログに2つ以上あります。\n管理者に連絡してください。');
+          interaction.editReply({content: '一致するメッセージIDがログに2つ以上あります。\n管理者に連絡してください。'});
           return;
         }
         if (!log.participants.includes(userId)) {
-          ephermeralReply(interaction, 'joinしていません');
+          interaction.editReply({content: 'joinしていません'});
           return;
         }
         log.count--;
@@ -200,7 +202,7 @@ client.on('interactionCreate', async (interaction) => {
       }
       if (!matchLog) {
         // console.log(obj);
-        ephermeralReply(interaction, 'メッセージIDに一致するログが見つかりませんでした。\n現在時刻以降の投票にも関わらずこのメッセージが表示されている場合は管理者に連絡してください。');
+        interaction.editReply({content: 'メッセージIDに一致するログが見つかりませんでした。\n現在時刻以降の投票にも関わらずこのメッセージが表示されている場合は管理者に連絡してください。'});
         return;
       }
       fs.writeFileSync('./log.json', JSON.stringify(obj, undefined, ' '));
@@ -211,7 +213,8 @@ client.on('interactionCreate', async (interaction) => {
         participantsName.push(username);
       }
       const content = escapeMarkdown('参加者: ' + participantsName.join(', ') + '\n参加人数: ' + matchLog.count + '/' + matchLog.format);
-      interaction.update({ content: content });
+      interaction.deleteReply();
+      interaction.message.edit({ content: content });
     }
   }
 });
