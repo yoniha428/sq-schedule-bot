@@ -33,9 +33,9 @@ cron.schedule('* * * * *', async () => {
   const now = new Date().getTime();
   const notifyChannel = client.channels.resolve(notifyChannelId);
   // console.log(obj);
-  obj.log = obj.log.filter(log => log.time > now);
+  obj = obj.filter(log => log.time > now);
   // console.log(obj);
-  for (let log of obj.log) {
+  for (let log of obj) {
     if (log.count < log.format) continue;
     if (now + 60 * 60 * 1000 > log.time && log.notified.in60min === 0) {
       let message = '';
@@ -118,7 +118,7 @@ client.on('messageCreate', async (message) => {
     const sendRow = await channel.send({ components: [row] });
 
     // logに現在の模擬の情報をpushする
-    obj.log.push({
+    obj.push({
       id: sendRow.id,
       time: unixTime,
       format: format,
@@ -150,7 +150,7 @@ client.on('interactionCreate', async (interaction) => {
 
       let matchLog;
       const userId = interaction.member.user.id;
-      for (let log of obj.log) if (log.id === interaction.message.id) {
+      for (let log of obj) if (log.id === interaction.message.id) {
         if (matchLog) {
           interaction.editReply({content: '一致するメッセージIDがログに2つ以上あります。\n管理者に連絡してください。'});
           return;
@@ -187,7 +187,7 @@ client.on('interactionCreate', async (interaction) => {
 
       let matchLog;
       const userId = interaction.member.user.id;
-      for (let log of obj.log) if (log.id === interaction.message.id) {
+      for (let log of obj) if (log.id === interaction.message.id) {
         if (matchLog) {
           interaction.editReply({content: '一致するメッセージIDがログに2つ以上あります。\n管理者に連絡してください。'});
           return;
@@ -219,4 +219,7 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
+if(!fs.existsSync('log.json')){
+  fs.writeFileSync('log.json', JSON.stringify([], undefined, ' '));
+}
 client.login(discordToken);
