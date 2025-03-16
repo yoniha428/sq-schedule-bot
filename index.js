@@ -29,6 +29,11 @@ function ephemeralReply(interaction, content){
 // 毎分走る、通知用
 cron.schedule('* * * * *', async () => {
   console.log('cron running');
+  if(!client.isReady()){
+    console.log('not logged in');
+    await client.login(discordToken);
+    if(!client.isReady()) console.log('login failed');
+  }
   let obj = JSON.parse(fs.readFileSync('./log.json', 'utf8'));
   const now = new Date().getTime();
   const notifyChannel = client.channels.resolve(notifyChannelId);
@@ -63,8 +68,8 @@ cron.schedule('* * * * *', async () => {
   fs.writeFileSync('./log.json', JSON.stringify(obj, undefined, ' '));
 });
 
-// 起動したとき
-client.once('ready', async () => {
+// clientがreadyになったとき(毎回)
+client.on('ready', async () => {
   console.log(`${client.user.tag}で起動しました！`);
 });
 
@@ -222,4 +227,6 @@ client.on('interactionCreate', async (interaction) => {
 if(!fs.existsSync('log.json')){
   fs.writeFileSync('log.json', JSON.stringify([], undefined, ' '));
 }
-client.login(discordToken);
+
+await client.login(discordToken);
+if(!client.isReady()) console.log('login failed');
