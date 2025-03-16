@@ -33,7 +33,7 @@ Discordが開き、招待画面に移るので、招待したいサーバーを�
 
 [dashboard](https://dashboard.render.com/)からAdd Newを選択し、Web Serviceを選択します。
 
-Public Git Repositoryタブを選択し、このリポジトリのURL(https://github.com/yoniha428/sq-schedule-bot)を貼り付けます。
+Public Git Repositoryタブを選択し、このリポジトリのURL( https://github.com/yoniha428/sq-schedule-bot )を貼り付けます。
 
 以下の通り初期設定します。
 
