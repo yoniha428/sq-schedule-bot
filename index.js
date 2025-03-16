@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags, escapeMarkdown } from 'discord.js';
+import { Client, GatewayIntentBits, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags, escapeMarkdown, ChannelType } from 'discord.js';
 import fs from 'fs';
 import cron from 'node-cron';
 import http from 'http';
@@ -42,6 +42,10 @@ cron.schedule('* * * * *', async () => {
   let obj = JSON.parse(fs.readFileSync('./log.json', 'utf8'));
   const now = new Date().getTime();
   const notifyChannel = client.channels.resolve(notifyChannelId);
+  if(!notifyChannel || notifyChannel.type !== ChannelType.GuildText){
+    console.log('notifyChannel not found or is not Text channel');
+    return;
+  }
   // console.log(obj);
   obj = obj.filter(log => log.time > now);
   // console.log(obj);
@@ -56,7 +60,7 @@ cron.schedule('* * * * *', async () => {
       if (log.count > log.format) {
         message += '\n人数超過です！話し合って参加者を決めましょう！';
       }
-      notifyChannel.send(message);
+      notifyChannel.send(message).then(undefined, console.log('failed to send'));
       log.notified.in60min = 1;
     }
     if (now + 30 * 60 * 1000 > log.time && log.notified.in30min === 0) {
@@ -66,7 +70,7 @@ cron.schedule('* * * * *', async () => {
       }
       message += '\n30分後に模擬があります！\n!cした？';
       // console.log(message);
-      notifyChannel.send(message);
+      notifyChannel.send(message).then(undefined, console.log('failed to send'));
       log.notified.in30min = 1;
     }
   }
