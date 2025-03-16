@@ -1,6 +1,10 @@
-const { Client, GatewayIntentBits, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags, escapeMarkdown } = require('discord.js');
-const fs = require('fs');
-const cron = require('node-cron');
+import { Client, GatewayIntentBits, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags, escapeMarkdown } from 'discord.js';
+import fs from 'fs';
+import cron from 'node-cron';
+import http from 'http';
+import config from './config.json' with { type: 'json' };
+const { discordToken, notifyChannelId, noNeedFormat } = config;
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -9,10 +13,8 @@ const client = new Client({
     GatewayIntentBits.GuildMembers
   ]
 });
-const { discordToken, notifyChannelId, noNeedFormat } = require('./config.json');
 
 // 以下portを開けるための処理
-const http = require('http');
 const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
   res.write('<h1>sq-schedule-bot</h1>');
@@ -32,7 +34,10 @@ cron.schedule('* * * * *', async () => {
   if(!client.isReady()){
     console.log('not logged in');
     await client.login(discordToken);
-    if(!client.isReady()) console.log('login failed');
+    if(!client.isReady()){
+      console.log('login failed');
+      return;
+    }
   }
   let obj = JSON.parse(fs.readFileSync('./log.json', 'utf8'));
   const now = new Date().getTime();
