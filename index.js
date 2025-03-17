@@ -55,12 +55,12 @@ cron.schedule("* * * * *", async () => {
     console.log("notifyChannel not found or is not Text channel");
     return;
   }
-  // console.log(obj);
   obj = obj.filter((log) => log.time > now);
-  // console.log(obj);
+  console.log(obj);
   for (let log of obj) {
     if (log.count < log.format) continue;
     if (now + 60 * 60 * 1000 > log.time && log.notified.in60min === 0) {
+      console.log('trying to send notify\n', log);
       let message = "";
       for (const id of log.participants) {
         message += (await client.users.fetch(id)).toString();
@@ -77,6 +77,7 @@ cron.schedule("* * * * *", async () => {
       }
     }
     if (now + 30 * 60 * 1000 > log.time && log.notified.in30min === 0) {
+      console.log("trying to send notify\n", log);
       let message = "";
       for (const id of log.participants) {
         message += (await client.users.fetch(id)).toString();
