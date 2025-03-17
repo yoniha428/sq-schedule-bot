@@ -71,7 +71,7 @@ cron.schedule("* * * * *", async () => {
       }
       notifyChannel
         .send(message)
-        .then((_result) => (log.notified.in60min = 0))
+        .then((_result) => (log.notified.in60min = 1))
         .catch((err) => console.log("message send failed. reason: ", err));
     }
     if (now + 30 * 60 * 1000 > log.time && log.notified.in30min === 0) {
@@ -82,7 +82,7 @@ cron.schedule("* * * * *", async () => {
       message += "\n30分後に模擬があります！\n!cした？";
       notifyChannel
         .send(message)
-        .then((_result) => (log.notified.in60min = 0))
+        .then((_result) => (log.notified.in30min = 1))
         .catch((err) => console.log("message send failed. reason: ", err));
     }
   }
