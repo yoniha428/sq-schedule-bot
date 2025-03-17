@@ -69,14 +69,12 @@ cron.schedule("* * * * *", async () => {
       if (log.count > log.format) {
         message += "\n人数超過です！話し合って参加者を決めましょう！";
       }
-      notifyChannel
-        .send(message)
-        .then((_result) => {
-          log.notified.in60min = 1;
-        })
-        .catch((err) => {
-          console.log("message send failed. reason: ", err);
-        });
+      const result = await notifyChannel.send(message);
+      if (result) {
+        log.notified.in60min = 1;
+      } else {
+        console.log("message send failed");
+      }
     }
     if (now + 30 * 60 * 1000 > log.time && log.notified.in30min === 0) {
       let message = "";
@@ -84,14 +82,12 @@ cron.schedule("* * * * *", async () => {
         message += (await client.users.fetch(id)).toString();
       }
       message += "\n30分後に模擬があります！\n!cした？";
-      notifyChannel
-        .send(message)
-        .then((_result) => {
-          log.notified.in30min = 1;
-        })
-        .catch((err) => {
-          console.log("message send failed. reason: ", err);
-        });
+      const result = await notifyChannel.send(message);
+      if (result) {
+        log.notified.in30min = 1;
+      } else {
+        console.log("message send failed");
+      }
     }
   }
   fs.writeFileSync("./log.json", JSON.stringify(obj, undefined, " "));
