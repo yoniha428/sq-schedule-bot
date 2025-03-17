@@ -105,13 +105,8 @@ botを使いたいサーバー(これからサーバーというときは、Rend
 注意！sq-scheduleにて@everyoneで始まる発言をするとbotが謎の投票を作ります！邪魔だと思うので、sq-scheduleはbot専用のチャンネルにすることをおすすめします。
 
 # 使用技術
-<center>
-
-![Node.js](https://nodejs.org/static/logos/nodejsDark.svg)
-
-![discord.js](https://discord.js.org/logo.svg)
-
-</center>
+<img src="https://img.shields.io/badge/-Node.js-555555.svg?logo=node.js&style=for-the-badge">
+<img src="https://img.shields.io/badge/-Discord.js-7289DA.svg?logo=discord&style=for-the-badge">
 
 # issueについて
 
