@@ -71,8 +71,12 @@ cron.schedule("* * * * *", async () => {
       }
       notifyChannel
         .send(message)
-        .then((_result) => (log.notified.in60min = 1))
-        .catch((err) => console.log("message send failed. reason: ", err));
+        .then((_result) => {
+          log.notified.in60min = 1;
+        })
+        .catch((err) => {
+          console.log("message send failed. reason: ", err);
+        });
     }
     if (now + 30 * 60 * 1000 > log.time && log.notified.in30min === 0) {
       let message = "";
@@ -82,8 +86,12 @@ cron.schedule("* * * * *", async () => {
       message += "\n30分後に模擬があります！\n!cした？";
       notifyChannel
         .send(message)
-        .then((_result) => (log.notified.in30min = 1))
-        .catch((err) => console.log("message send failed. reason: ", err));
+        .then((_result) => {
+          log.notified.in30min = 1;
+        })
+        .catch((err) => {
+          console.log("message send failed. reason: ", err);
+        });
     }
   }
   fs.writeFileSync("./log.json", JSON.stringify(obj, undefined, " "));
