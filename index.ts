@@ -30,7 +30,6 @@ const client = new Client({
     GatewayIntentBits.GuildMembers,
   ],
 });
-const needFormatDefault = [1, 2, 3, 4, 6];
 
 // 以下portを開けるための処理
 const server = http.createServer((_req, res) => {
@@ -146,9 +145,13 @@ client.on(Events.MessageCreate, async (message) => {
     message.content.substring(0, 9) === "@everyone" &&
     message.channel.type === ChannelType.GuildText
   ){
+
+    // ログがないなら作ればいいじゃない
     if(!existLog){
       logInit(message.guild, message.channel);
     }
+
+    // makeLogをawaitして結果をログに書き込む
     obj = await makeLog(message, obj);
     fs.writeFileSync(targetLogName, JSON.stringify(obj, undefined, " "));
   }
@@ -156,7 +159,7 @@ client.on(Events.MessageCreate, async (message) => {
 
 // interaction作成時
 client.on(Events.InteractionCreate, async (interaction) => {
-  //ボタンのとき
+  // ボタンのとき
   if (interaction.isButton()) {
     // 考え中のリプライ
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -171,11 +174,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
       dropCommand(client, interaction);
     }
   }
-});
 
-if (!fs.existsSync("./log.json")) {
-  fs.writeFileSync("./log.json", JSON.stringify([], undefined, " "));
-}
+  // コマンドのとき
+  if(interaction.isChatInputCommand()){
+    // todo: コマンドマネージャを./commandsに作ってinteractionを丸投げする
+  }
+});
 
 const result = await client.login(discordToken);
 if (!result) {

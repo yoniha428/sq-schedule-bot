@@ -18,7 +18,7 @@ const setNeedFormat = new SlashCommandBuilder()
     new SlashCommandSubcommandBuilder()
       .setName("output")
       .setDescription(
-        "このチャンネルに、現在通知する設定になっているフォーマットを送信(確認用)"
+        "現在通知する設定になっているフォーマットを送信(確認用)"
       )
   )
 
@@ -29,7 +29,7 @@ const setNeedFormat = new SlashCommandBuilder()
       .addIntegerOption(
         new SlashCommandIntegerOption()
           .setName("format")
-          .setDescription("追加するフォーマットの選択")
+          .setDescription("追加するフォーマット")
           .addChoices(
             { name: "2v2", value: 2 },
             { name: "3v3", value: 3 },
@@ -47,7 +47,7 @@ const setNeedFormat = new SlashCommandBuilder()
       .addIntegerOption(
         new SlashCommandIntegerOption()
           .setName("format")
-          .setDescription("削除するフォーマットの選択")
+          .setDescription("削除するフォーマット")
           .addChoices(
             { name: "2v2", value: 2 },
             { name: "3v3", value: 3 },
@@ -81,8 +81,6 @@ const setFollowChannel = new SlashCommandBuilder()
 const commands = [setNeedFormat, setNotifyChannel, setFollowChannel];
 
 const rest = new REST().setToken(discordToken);
-
-console.log(discordToken, clientId);
 
 rest
   .put(Routes.applicationCommands(clientId), { body: commands })
