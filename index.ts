@@ -305,7 +305,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
       // 正常な処理
       log.count--;
-      log.participants = log.participants.filter(userId);
+      log.participants = log.participants.filter((id: string) => id !== userId);
 
       // メッセージ編集
       let participantsName: Array<string> = [];
@@ -331,6 +331,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 });
 
+if(!fs.existsSync("./log.json")){
+  fs.writeFileSync("./log.json", JSON.stringify([], undefined, " "))
+}
 
 const result = await client.login(discordToken);
 if (!result){
