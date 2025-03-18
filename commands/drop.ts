@@ -1,7 +1,7 @@
 import { Client, ButtonInteraction, escapeMarkdown } from "discord.js";
 import fs from "fs";
 
-export const dropCommand = async (
+export default async (
   client: Client,
   interaction: ButtonInteraction
 ) => {

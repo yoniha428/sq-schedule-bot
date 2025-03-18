@@ -2,27 +2,25 @@
 import {
   Client,
   GatewayIntentBits,
-  ButtonBuilder,
-  ButtonStyle,
-  ActionRowBuilder,
   MessageFlags,
   ChannelType,
   Events,
+  TextChannel,
 } from "discord.js";
-import type { TextChannel } from "discord.js";
 import fs from "fs";
 import cron from "node-cron";
 import http from "http";
 
 // 設定のimport
 import config from "./config.json" with { type: "json" };
-const { discordToken, notifyChannelId } = config;
+const { discordToken } = config;
 
 // 自作コマンドのimport
-import { joinCommand } from "./commands/join.js";
-import { dropCommand } from "./commands/drop.js";
-import { makeLog } from "./commands/makelog.js";
+import joinCommand from "./commands/join.js";
+import dropCommand from "./commands/drop.js";
+import makeLog from "./commands/makelog.js";
 
+// 各種初期化
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -31,6 +29,7 @@ const client = new Client({
     GatewayIntentBits.GuildMembers,
   ],
 });
+const needFormatDefault = [1, 2, 3, 4, 6];
 
 // 以下portを開けるための処理
 const server = http.createServer((_req, res) => {
@@ -53,8 +52,8 @@ async function sendNotify(log: any, message: string, channel: TextChannel) {
   return new Promise((resolve, reject) => {
     if (result) return resolve(message);
     else {
-      console.log("send message failed");
-      return reject(null);
+      console.error("send message failed");
+      return reject("send message failed");
     }
   });
 }
@@ -68,54 +67,56 @@ cron.schedule("* * * * *", async () => {
     console.log("not logged in");
     await client.login(discordToken);
     if (!client.isReady()) {
-      console.log("login failed");
+      console.error("login failed");
       return;
     }
   }
 
-  // 送信用チャンネルを準備する
-  const notifyChannel = client.channels.resolve(notifyChannelId);
-  if (!notifyChannel || notifyChannel.type !== ChannelType.GuildText) {
-    console.log("notifyChannel not found or is not Text channel");
-    return;
-  }
-
-  let obj = JSON.parse(fs.readFileSync("./log.json", "utf8"));
   const now = new Date().getTime();
 
-  obj = obj.filter((log: any) => log.time > now);
-  console.log(obj);
+  client.guilds.cache.each(async (guild) => {
+    const targetLogName = "./log/" + guild.id + ".json";
+    console.log(targetLogName);
+    if(!fs.existsSync(targetLogName)) return;
 
-  for (let log of obj) {
-    // 人が足りない
-    if (log.count < log.format) {
-      continue;
+    let obj = JSON.parse(fs.readFileSync(targetLogName, "utf8"));
+    const notifyChannel = await client.channels.fetch(obj.notifyChannel);
+    if(!notifyChannel || notifyChannel.type !== ChannelType.GuildText) return;
+
+    obj.logs = obj.logs.filter((log: any) => log.time > now);
+    console.log(obj);
+
+    for (let log of obj.logs) {
+      // 人が足りない
+      if (log.count < log.format) {
+        continue;
+      }
+
+      // 何分後に模擬があるか
+      const minutesAfter = new Date(log.time - now + 30 * 1000).getMinutes();
+
+      // 60分後通知
+      if (now + 60 * 60 * 1000 > log.time && log.notified.in60min === 0) {
+        const message =
+          minutesAfter +
+          "分後に模擬があります！\n!cして！" +
+          (log.count > log.format
+            ? "\n人数超過です！話し合って参加者を決めましょう！"
+            : "");
+        const result = await sendNotify(log, message, notifyChannel);
+        if (result) log.notified.in60min = 1;
+      }
+
+      // 30分後通知
+      if (now + 30 * 60 * 1000 > log.time && log.notified.in30min === 0) {
+        const message = minutesAfter + "分後に模擬があります！\n!cした？";
+        const result = await sendNotify(log, message, notifyChannel);
+        if (result) log.notified.in30min = 1;
+      }
     }
 
-    // 何分後に模擬があるか
-    const minutesAfter = new Date(log.time - now + 30 * 1000).getMinutes();
-
-    // 60分後通知
-    if (now + 60 * 60 * 1000 > log.time && log.notified.in60min === 0) {
-      const message =
-        minutesAfter +
-        "分後に模擬があります！\n!cして！" +
-        (log.count > log.format
-          ? "\n人数超過です！話し合って参加者を決めましょう！"
-          : "");
-      const result = await sendNotify(log, message, notifyChannel);
-      if (result) log.notified.in60min = 1;
-    }
-
-    // 30分後通知
-    if (now + 30 * 60 * 1000 > log.time && log.notified.in30min === 0) {
-      const message = minutesAfter + "分後に模擬があります！\n!cした？";
-      const result = await sendNotify(log, message, notifyChannel);
-      if (result) log.notified.in30min = 1;
-    }
-  }
-
-  fs.writeFileSync("./log.json", JSON.stringify(obj, undefined, " "));
+    fs.writeFileSync("./log.json", JSON.stringify(obj, undefined, " "));
+  });
 });
 
 // clientがreadyになったとき(毎回)
@@ -125,19 +126,14 @@ client.on(Events.ClientReady, async () => {
 
 // 自分がいるサーバーにメッセージが送信されたとき
 client.on(Events.MessageCreate, async (message) => {
-  // sq-scheduleに送られた、このbot以外の発言で、@everyoneしているものを拾う
-  // if (message.author.id === client.user?.id) return;
-  // if (message.channel.type !== ChannelType.GuildText) return;
-  // if (message.content.substring(0, 9) != "@everyone") return;
-
-  const targetLogName = "./log/" + message.channelId + ".json";
+  const targetLogName = "./log/" + message.guildId + ".json";
   const existLog = fs.existsSync(targetLogName);
   let obj = existLog
     ? JSON.parse(fs.readFileSync(targetLogName, "utf8"))
     : {
         followChannel: message.channel.id,
         notifyChannel: message.channel.id,
-        needFormat: [2, 3, 4, 6],
+        needFormat: needFormatDefault,
         logs: [],
       };
 

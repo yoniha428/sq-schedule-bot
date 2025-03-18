@@ -6,7 +6,7 @@ import {
   ButtonStyle,
 } from "discord.js";
 
-export const makeLog = async (
+export default async (
   message: OmitPartialGroupDMChannel<Message<boolean>>,
   obj: any
 ) => {
@@ -71,6 +71,6 @@ export const makeLog = async (
     });
   }
 
-  // log.jsonにobjを書き込む
+  // objを返す
   return obj
 };
