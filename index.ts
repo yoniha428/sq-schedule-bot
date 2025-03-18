@@ -6,12 +6,10 @@ import {
   ButtonStyle,
   ActionRowBuilder,
   MessageFlags,
-  escapeMarkdown,
   ChannelType,
   Events,
-  Channel,
 } from "discord.js";
-import type { TextChannel } from "discord.js"
+import type { TextChannel } from "discord.js";
 import fs from "fs";
 import cron from "node-cron";
 import http from "http";
@@ -22,6 +20,7 @@ const { discordToken, notifyChannelId, noNeedFormat } = config;
 
 // 自作コマンドのimport
 import { joinCommand } from "./commands/join.js";
+import { dropCommand } from "./commands/drop.js";
 
 const client = new Client({
   intents: [
@@ -87,7 +86,6 @@ cron.schedule("* * * * *", async () => {
   console.log(obj);
 
   for (let log of obj) {
-
     // 人が足りない
     if (log.count < log.format) {
       continue;
@@ -178,7 +176,7 @@ client.on(Events.MessageCreate, async (message) => {
     const row = new ActionRowBuilder<ButtonBuilder>()
       .addComponents(button1)
       .addComponents(button2);
-    const sendResult = await channel.send({components: [row]});
+    const sendResult = await channel.send({ components: [row] });
 
     // logに現在の模擬の情報をpushする
     obj.push({
@@ -200,142 +198,28 @@ client.on(Events.MessageCreate, async (message) => {
 
 // interaction作成時
 client.on(Events.InteractionCreate, async (interaction) => {
-
   //ボタンのとき
   if (interaction.isButton()) {
-
     // 考え中のリプライ
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     // joinボタン
     if (interaction.customId === "join") {
-      
-      // // idが一致するログを抽出
-      // let obj = JSON.parse(fs.readFileSync("./log.json", "utf8"));
-      // const matchLog = obj.filter((log) => log.id === interaction.message.id);
-
-      // // 2個以上マッチ
-      // if (matchLog.length > 1) {
-      //   interaction.editReply({
-      //     content:
-      //       "一致するメッセージIDがログに2つ以上あります。\n管理者に連絡してください。",
-      //   });
-      //   return;
-      // }
-
-      // // マッチなし
-      // if (matchLog.length === 0) {
-      //   interaction.editReply({
-      //     content:
-      //       "メッセージIDに一致するログが見つかりませんでした。\n" +
-      //       "現在時刻以降の投票にも関わらずこのメッセージが表示されている場合は管理者に連絡してください。",
-      //   });
-      //   return;
-      // }
-
-      // const log = matchLog.at(0);
-      // const userId = interaction.member.user.id;
-
-      // // 参加済み
-      // if (log.participants.includes(userId)) {
-      //   interaction.editReply({ content: "既に参加しています" });
-      //   return;
-      // }
-
-      // // 正常な処理
-      // log.count++;
-      // log.participants.push(userId);
-
-      // // メッセージ編集
-      // let participantsName = [];
-      // for (const id of log.participants) {
-      //   const username = (await client.users.fetch(id)).username;
-      //   // console.log(username);
-      //   participantsName.push(username);
-      // }
-      // const content = escapeMarkdown(
-      //   "参加者: " +
-      //     participantsName.join(", ") +
-      //     "\n参加人数: " +
-      //     log.count +
-      //     "/" +
-      //     log.format
-      // );
-      // interaction.deleteReply();
-      // interaction.message.edit({ content: content });
-
-      // // ログを更新
-      // fs.writeFileSync("./log.json", JSON.stringify(obj, undefined, " "));
       joinCommand(client, interaction);
     }
 
     // dropボタン
     if (interaction.customId === "drop") {
-      // idが一致するログを抽出
-      let obj: any = JSON.parse(fs.readFileSync("./log.json", "utf8"));
-      const matchLog = obj.filter((log: any) => log.id === interaction.message.id);
-
-      // 2個以上マッチ
-      if (matchLog.length > 1) {
-        interaction.editReply({
-          content:
-            "一致するメッセージIDがログに2つ以上あります。\n管理者に連絡してください。",
-        });
-        return;
-      }
-
-      // マッチなし
-      if (matchLog.length === 0) {
-        interaction.editReply({
-          content:
-            "メッセージIDに一致するログが見つかりませんでした。\n" +
-            "現在時刻以降の投票にも関わらずこのメッセージが表示されている場合は管理者に連絡してください。",
-        });
-        return;
-      }
-
-      const log = matchLog.at(0);
-      const userId = interaction.member?.user.id;
-
-      // 参加していない
-      if (!log.participants.includes(userId)) {
-        interaction.editReply({ content: "参加していません" });
-        return;
-      }
-
-      // 正常な処理
-      log.count--;
-      log.participants = log.participants.filter((id: string) => id !== userId);
-
-      // メッセージ編集
-      let participantsName: Array<string> = [];
-      for (const id of log.participants) {
-        const username = (await client.users.fetch(id)).username;
-        // console.log(username);
-        participantsName.push(username);
-      }
-      const content = escapeMarkdown(
-        "参加者: " +
-          participantsName.join(", ") +
-          "\n参加人数: " +
-          log.count +
-          "/" +
-          log.format
-      );
-      interaction.deleteReply();
-      interaction.message.edit({ content: content });
-
-      // ログを更新
-      fs.writeFileSync("./log.json", JSON.stringify(obj, undefined, " "));
+      dropCommand(client, interaction);
     }
   }
 });
 
-if(!fs.existsSync("./log.json")){
-  fs.writeFileSync("./log.json", JSON.stringify([], undefined, " "))
+if (!fs.existsSync("./log.json")) {
+  fs.writeFileSync("./log.json", JSON.stringify([], undefined, " "));
 }
 
 const result = await client.login(discordToken);
-if (!result){
+if (!result) {
   throw new Error("login failed");
 }

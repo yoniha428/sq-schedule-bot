@@ -1,12 +1,12 @@
 import { Client, ButtonInteraction, escapeMarkdown } from "discord.js";
 import fs from "fs";
 
-export const joinCommand = async (
+export const dropCommand = async (
   client: Client,
   interaction: ButtonInteraction
 ) => {
   // idが一致するログを抽出
-  let obj = JSON.parse(fs.readFileSync("./log.json", "utf8"));
+  let obj: any = JSON.parse(fs.readFileSync("./log.json", "utf8"));
   const matchLog = obj.filter((log: any) => log.id === interaction.message.id);
 
   // 2個以上マッチ
@@ -31,18 +31,18 @@ export const joinCommand = async (
   const log = matchLog.at(0);
   const userId = interaction.member?.user.id;
 
-  // 参加済み
-  if (log.participants.includes(userId)) {
-    interaction.editReply({ content: "既に参加しています" });
+  // 参加していない
+  if (!log.participants.includes(userId)) {
+    interaction.editReply({ content: "参加していません" });
     return;
   }
 
   // 正常な処理
-  log.count++;
-  log.participants.push(userId);
+  log.count--;
+  log.participants = log.participants.filter((id: string) => id !== userId);
 
   // メッセージ編集
-  let participantsName = [];
+  let participantsName: Array<string> = [];
   for (const id of log.participants) {
     const username = (await client.users.fetch(id)).username;
     // console.log(username);
