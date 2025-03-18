@@ -1,3 +1,4 @@
+// ライブラリのimport
 import {
   Client,
   GatewayIntentBits,
@@ -7,12 +8,20 @@ import {
   MessageFlags,
   escapeMarkdown,
   ChannelType,
+  Events,
+  Channel,
 } from "discord.js";
+import type { TextChannel } from "discord.js"
 import fs from "fs";
 import cron from "node-cron";
 import http from "http";
+
+// 設定のimport
 import config from "./config.json" with { type: "json" };
 const { discordToken, notifyChannelId, noNeedFormat } = config;
+
+// 自作コマンドのimport
+import { joinCommand } from "./commands/join.js";
 
 const client = new Client({
   intents: [
@@ -29,10 +38,10 @@ const server = http.createServer((_req, res) => {
   res.write("<h1>sq-schedule-bot</h1>");
   res.end();
 });
-const port = process.env.PORT || 10000;
+const port = parseInt(process.env.PORT || "10000");
 server.listen(port);
 
-async function sendNotify(log, message, channel) {
+async function sendNotify(log: any, message: string, channel: TextChannel) {
   console.log("trying to send notification");
   let sendMessage = "";
   for (const userId of log.participants) {
@@ -74,7 +83,7 @@ cron.schedule("* * * * *", async () => {
   let obj = JSON.parse(fs.readFileSync("./log.json", "utf8"));
   const now = new Date().getTime();
 
-  obj = obj.filter((log) => log.time > now);
+  obj = obj.filter((log: any) => log.time > now);
   console.log(obj);
 
   for (let log of obj) {
@@ -111,14 +120,15 @@ cron.schedule("* * * * *", async () => {
 });
 
 // clientがreadyになったとき(毎回)
-client.on("ready", async () => {
-  console.log(`${client.user.tag}で起動しました！`);
+client.on(Events.ClientReady, async () => {
+  console.log(client.user?.tag + "で起動しました！");
 });
 
 // 自分がいるサーバーにメッセージが送信されたとき
-client.on("messageCreate", async (message) => {
+client.on(Events.MessageCreate, async (message) => {
   // sq-scheduleに送られた、このbot以外の発言で、@everyoneしているものを拾う
-  if (message.author.id === client.user.id) return;
+  if (message.author.id === client.user?.id) return;
+  if (message.channel.type !== ChannelType.GuildText) return;
   if (message.channel.name !== "sq-schedule") return;
   if (message.content.substring(0, 9) != "@everyone") return;
 
@@ -137,7 +147,7 @@ client.on("messageCreate", async (message) => {
     const unixTime = parseInt(s.substring(20, 30)) * 1000;
     const jstTime = unixTime + 9 * 60 * 60 * 1000;
     const time = new Date(jstTime);
-    const format = parseInt(s.at(10));
+    const format = parseInt(s.at(10) ?? "0");
 
     // 投票を作る必要がないフォーマットなら飛ばす
     if (noNeedFormat.includes(format)) continue;
@@ -165,14 +175,14 @@ client.on("messageCreate", async (message) => {
       .setCustomId("drop")
       .setLabel("drop")
       .setStyle(ButtonStyle.Danger);
-    const row = new ActionRowBuilder()
+    const row = new ActionRowBuilder<ButtonBuilder>()
       .addComponents(button1)
       .addComponents(button2);
-    const sendRow = await channel.send({ components: [row] });
+    const sendResult = await channel.send({components: [row]});
 
     // logに現在の模擬の情報をpushする
     obj.push({
-      id: sendRow.id,
+      id: sendResult.id,
       time: unixTime,
       format: format,
       count: 0,
@@ -189,7 +199,8 @@ client.on("messageCreate", async (message) => {
 });
 
 // interaction作成時
-client.on("interactionCreate", async (interaction) => {
+client.on(Events.InteractionCreate, async (interaction) => {
+
   //ボタンのとき
   if (interaction.isButton()) {
 
@@ -199,69 +210,70 @@ client.on("interactionCreate", async (interaction) => {
     // joinボタン
     if (interaction.customId === "join") {
       
-      // idが一致するログを抽出
-      let obj = JSON.parse(fs.readFileSync("./log.json", "utf8"));
-      const matchLog = obj.filter((log) => log.id === interaction.message.id);
+      // // idが一致するログを抽出
+      // let obj = JSON.parse(fs.readFileSync("./log.json", "utf8"));
+      // const matchLog = obj.filter((log) => log.id === interaction.message.id);
 
-      // 2個以上マッチ
-      if (matchLog.length > 1) {
-        interaction.editReply({
-          content:
-            "一致するメッセージIDがログに2つ以上あります。\n管理者に連絡してください。",
-        });
-        return;
-      }
+      // // 2個以上マッチ
+      // if (matchLog.length > 1) {
+      //   interaction.editReply({
+      //     content:
+      //       "一致するメッセージIDがログに2つ以上あります。\n管理者に連絡してください。",
+      //   });
+      //   return;
+      // }
 
-      // マッチなし
-      if (matchLog.length === 0) {
-        interaction.editReply({
-          content:
-            "メッセージIDに一致するログが見つかりませんでした。\n" +
-            "現在時刻以降の投票にも関わらずこのメッセージが表示されている場合は管理者に連絡してください。",
-        });
-        return;
-      }
+      // // マッチなし
+      // if (matchLog.length === 0) {
+      //   interaction.editReply({
+      //     content:
+      //       "メッセージIDに一致するログが見つかりませんでした。\n" +
+      //       "現在時刻以降の投票にも関わらずこのメッセージが表示されている場合は管理者に連絡してください。",
+      //   });
+      //   return;
+      // }
 
-      const log = matchLog.at(0);
-      const userId = interaction.member.user.id;
+      // const log = matchLog.at(0);
+      // const userId = interaction.member.user.id;
 
-      // 参加済み
-      if (log.participants.includes(userId)) {
-        interaction.editReply({ content: "既に参加しています" });
-        return;
-      }
+      // // 参加済み
+      // if (log.participants.includes(userId)) {
+      //   interaction.editReply({ content: "既に参加しています" });
+      //   return;
+      // }
 
-      // 正常な処理
-      log.count++;
-      log.participants.push(userId);
+      // // 正常な処理
+      // log.count++;
+      // log.participants.push(userId);
 
-      // メッセージ編集
-      let participantsName = [];
-      for (const id of log.participants) {
-        const username = (await client.users.fetch(id)).username;
-        // console.log(username);
-        participantsName.push(username);
-      }
-      const content = escapeMarkdown(
-        "参加者: " +
-          participantsName.join(", ") +
-          "\n参加人数: " +
-          log.count +
-          "/" +
-          log.format
-      );
-      interaction.deleteReply();
-      interaction.message.edit({ content: content });
+      // // メッセージ編集
+      // let participantsName = [];
+      // for (const id of log.participants) {
+      //   const username = (await client.users.fetch(id)).username;
+      //   // console.log(username);
+      //   participantsName.push(username);
+      // }
+      // const content = escapeMarkdown(
+      //   "参加者: " +
+      //     participantsName.join(", ") +
+      //     "\n参加人数: " +
+      //     log.count +
+      //     "/" +
+      //     log.format
+      // );
+      // interaction.deleteReply();
+      // interaction.message.edit({ content: content });
 
-      // ログを更新
-      fs.writeFileSync("./log.json", JSON.stringify(obj, undefined, " "));
+      // // ログを更新
+      // fs.writeFileSync("./log.json", JSON.stringify(obj, undefined, " "));
+      joinCommand(client, interaction);
     }
 
     // dropボタン
     if (interaction.customId === "drop") {
       // idが一致するログを抽出
-      let obj = JSON.parse(fs.readFileSync("./log.json", "utf8"));
-      const matchLog = obj.filter((log) => log.id === interaction.message.id);
+      let obj: any = JSON.parse(fs.readFileSync("./log.json", "utf8"));
+      const matchLog = obj.filter((log: any) => log.id === interaction.message.id);
 
       // 2個以上マッチ
       if (matchLog.length > 1) {
@@ -283,7 +295,7 @@ client.on("interactionCreate", async (interaction) => {
       }
 
       const log = matchLog.at(0);
-      const userId = interaction.member.user.id;
+      const userId = interaction.member?.user.id;
 
       // 参加していない
       if (!log.participants.includes(userId)) {
@@ -296,7 +308,7 @@ client.on("interactionCreate", async (interaction) => {
       log.participants = log.participants.filter(userId);
 
       // メッセージ編集
-      let participantsName = [];
+      let participantsName: Array<string> = [];
       for (const id of log.participants) {
         const username = (await client.users.fetch(id)).username;
         // console.log(username);
@@ -319,11 +331,6 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
-
-// log.jsonがないなら作る
-if (!fs.existsSync("log.json")) {
-  fs.writeFileSync("log.json", JSON.stringify([], undefined, " "));
-}
 
 const result = await client.login(discordToken);
 if (!result){

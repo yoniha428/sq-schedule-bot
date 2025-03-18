@@ -1,4 +1,5 @@
-/config.json
+config.json
 /node_modules/
 /log.json
 /package-lock.json
+/build
