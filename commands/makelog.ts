@@ -6,9 +6,11 @@ import {
   ButtonStyle,
 } from "discord.js";
 
+import { GuildData, Log } from "./class.js";
+
 export default async (
   message: OmitPartialGroupDMChannel<Message<boolean>>,
-  obj: any
+  obj: GuildData
 ) => {
   const content = message.content
     .split("\n")
@@ -41,8 +43,6 @@ export default async (
       s.substring(10, 13)
     );
 
-    if(!result) console.log("message sending failed");
-
     // joinとdropのボタンを作って送る
     const button1 = new ButtonBuilder()
       .setCustomId("join")
@@ -57,18 +57,10 @@ export default async (
       .addComponents(button2);
     const sendResult = await channel.send({ components: [row] });
 
+    console.log(sendResult.id);
+
     // logに現在の模擬の情報をpushする
-    obj.logs.push({
-      id: sendResult.id,
-      time: unixTime,
-      format: format,
-      count: 0,
-      participants: [],
-      notified: {
-        in30min: 0,
-        in60min: 0,
-      },
-    });
+    obj.logs.push(new Log(sendResult.id, unixTime, format));
   }
 
   // objを返す

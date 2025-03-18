@@ -1,14 +1,40 @@
-import { Client, ButtonInteraction, escapeMarkdown } from "discord.js";
+import {
+  Client,
+  ButtonInteraction,
+  escapeMarkdown,
+  ChannelType,
+} from "discord.js";
 import fs from "fs";
+import path from "path";
+const dirname = import.meta.dirname;
 
-export default async (
-  client: Client,
-  interaction: ButtonInteraction
-) => {
+import { Log, GuildData } from "./class.js";
+import logInit from "./loginit.js";
+
+export default async (client: Client, interaction: ButtonInteraction) => {
+  if (
+    !interaction.guild ||
+    !interaction.channel ||
+    interaction.channel.type !== ChannelType.GuildText
+  ) {
+    console.log("ボタン押されてるのにギルドとかチャンネルが変");
+    return;
+  }
+
   // idが一致するログを抽出
-  let obj: any = JSON.parse(fs.readFileSync("./log.json", "utf8"));
-  const matchLog = obj.filter((log: any) => log.id === interaction.message.id);
+  const targetLogName = path.resolve(
+    dirname,
+    "../../log/" + interaction.guildId + ".json"
+  );
 
+  if (!fs.existsSync(targetLogName)) {
+    logInit(interaction.guild, interaction.channel);
+  }
+  let obj: GuildData = JSON.parse(fs.readFileSync("./log.json", "utf8"));
+  const matchLog: Array<Log> = obj.logs.filter(
+    (log: Log) => log.id === interaction.message.id
+  );
+  
   // 2個以上マッチ
   if (matchLog.length > 1) {
     interaction.editReply({
@@ -30,6 +56,11 @@ export default async (
 
   const log = matchLog.at(0);
   const userId = interaction.member?.user.id;
+
+  if (!log || !userId) {
+    console.error("logとかuserIdミスってそう");
+    return;
+  }
 
   // 参加していない
   if (!log.participants.includes(userId)) {

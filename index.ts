@@ -19,6 +19,7 @@ const { discordToken } = config;
 import joinCommand from "./commands/join.js";
 import dropCommand from "./commands/drop.js";
 import makeLog from "./commands/makelog.js";
+import logInit from "./commands/loginit.js"
 
 // 各種初期化
 const client = new Client({
@@ -124,32 +125,29 @@ client.on(Events.ClientReady, async () => {
   console.log(client.user?.tag + "で起動しました！");
 });
 
+// 招待されたとき
+client.on(Events.GuildCreate, async (guild) => {
+  logInit(guild, guild.systemChannel);
+})
+
 // 自分がいるサーバーにメッセージが送信されたとき
 client.on(Events.MessageCreate, async (message) => {
+  if(!message.guild) return;
   const targetLogName = "./log/" + message.guildId + ".json";
   const existLog = fs.existsSync(targetLogName);
   let obj = existLog
     ? JSON.parse(fs.readFileSync(targetLogName, "utf8"))
-    : {
-        followChannel: message.channel.id,
-        notifyChannel: message.channel.id,
-        needFormat: needFormatDefault,
-        logs: [],
-      };
+    : null;
 
   // 自分のものでなく、notifyChannelに送られていて、@everyoneしているもの
   if (
     message.author.id !== client.user?.id &&
-    (!existLog || message.channel.id === obj.followChannel)&&
-    message.content.substring(0, 9) === "@everyone"
+    (!existLog || message.channel.id === obj.followChannel) &&
+    message.content.substring(0, 9) === "@everyone" &&
+    message.channel.type === ChannelType.GuildText
   ){
     if(!existLog){
-      message.channel.send(
-        "初期設定としてこのチャンネルをフォローチャンネルおよびお知らせチャンネルに設定しました。\n" + 
-        "sq-followchannelコマンドおよびsq-notifychannelコマンドにより、設定を行ってください。\n" +
-        "sq-needformatコマンドによって、通知が必要なフォーマットの設定をすることもできます。"
-      );
-      fs.writeFileSync(targetLogName, JSON.stringify(obj, undefined, " "));
+      logInit(message.guild, message.channel);
     }
     obj = await makeLog(message, obj);
     fs.writeFileSync(targetLogName, JSON.stringify(obj, undefined, " "));
