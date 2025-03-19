@@ -82,7 +82,7 @@ cron.schedule("* * * * *", async () => {
     if(!fs.existsSync(fileName)) return;
 
     let guildData: GuildData = JSON.parse(fs.readFileSync(fileName, "utf8"));
-    const notifyChannel = await client.channels.fetch(guildData.notifyChannel);
+    const notifyChannel = await client.channels.fetch(guildData.notifyChannel).catch(console.error);
     if(!notifyChannel || notifyChannel.type !== ChannelType.GuildText) return;
 
     let logs = guildData.logs;
