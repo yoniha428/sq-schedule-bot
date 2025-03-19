@@ -41,7 +41,7 @@ export default async (interaction: ChatInputCommandInteraction) => {
         interaction.editReply("既に通知しない設定になっています");
         return;
       }
-      needFormat.filter((format) => format !== deleteFormat);
+      needFormat = needFormat.filter((format) => format !== deleteFormat);
     }
 
     // needFormatはArrayなので、再代入によるコピーが発生していて、

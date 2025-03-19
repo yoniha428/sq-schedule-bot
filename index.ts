@@ -144,7 +144,7 @@ client.on(Events.MessageCreate, async (message) => {
   // 自分のものでなく、notifyChannelに送られていて、@everyoneしているもの
   if (
     message.author.id !== client.user?.id &&
-    (!existLog || message.channel.id === obj.followChannel) &&
+    (!existLog || (message.channel.id === obj.followChannel)) &&
     message.content.substring(0, 9) === "@everyone" &&
     message.channel.type === ChannelType.GuildText
   ){
