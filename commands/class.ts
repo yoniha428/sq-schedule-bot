@@ -31,18 +31,22 @@ export class GuildData {
     this.logs = []
   }
 
+  static fromJSON(obj: any): GuildData {
+    let guildData = new GuildData(obj.followChannel, obj.notifyChannel, obj.needFormat);
+    guildData.logs = obj.logs;
+    return guildData;
+  }
+
   addLog(log: Log): this {
     this.logs.push(log);
     return this;
   }
 
-  setFollowChannel(channel: TextChannel): this {
+  setFollowChannel(channel: TextChannel): void {
     this.followChannel = channel.id;
-    return this;
   }
 
-  setNotifyChannel(channel: TextChannel): this {
+  setNotifyChannel(channel: TextChannel): void {
     this.notifyChannel = channel.id;
-    return this;
   }
 }

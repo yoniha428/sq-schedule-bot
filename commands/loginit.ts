@@ -3,7 +3,7 @@ import fs from "fs";
 
 import { GuildData } from "./class.js";
 
-const needFormatDefault = [1, 2, 3, 4, 6];
+const needFormatDefault = [2, 3, 4, 6];
 
 export default async (guild: Guild, channel: TextChannel | null) => {
   const targetLogName = "./log/" + guild.id + ".json";

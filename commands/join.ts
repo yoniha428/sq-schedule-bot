@@ -22,15 +22,15 @@ export default async (client: Client, interaction: ButtonInteraction) => {
   }
 
   // idが一致するログを抽出
-  const targetLogName = path.resolve(
+  const fileName = path.resolve(
     dirname,
     "../../log/" + interaction.guildId + ".json"
   );
 
-  if (!fs.existsSync(targetLogName)) {
+  if (!fs.existsSync(fileName)) {
     logInit(interaction.guild, interaction.channel);
   }
-  let obj: GuildData = JSON.parse(fs.readFileSync(targetLogName, "utf8"));
+  let obj: GuildData = JSON.parse(fs.readFileSync(fileName, "utf8"));
 
   const matchLog: Array<Log> = obj.logs.filter(
     (log: Log) => log.id === interaction.message.id

@@ -20,6 +20,8 @@ import joinCommand from "./commands/join.js";
 import dropCommand from "./commands/drop.js";
 import makeLog from "./commands/makelog.js";
 import logInit from "./commands/loginit.js"
+import { GuildData, Log } from "./commands/class.js";
+import commandManager from "./commands/commandmanager.js";
 
 // 各種初期化
 const client = new Client({
@@ -40,7 +42,7 @@ const server = http.createServer((_req, res) => {
 const port = parseInt(process.env.PORT || "10000");
 server.listen(port);
 
-async function sendNotify(log: any, message: string, channel: TextChannel) {
+async function sendNotify(log: Log, message: string, channel: TextChannel) {
   console.log("trying to send notification");
   let sendMessage = "";
   for (const userId of log.participants) {
@@ -75,18 +77,19 @@ cron.schedule("* * * * *", async () => {
   const now = new Date().getTime();
 
   client.guilds.cache.each(async (guild) => {
-    const targetLogName = "./log/" + guild.id + ".json";
-    console.log(targetLogName);
-    if(!fs.existsSync(targetLogName)) return;
+    const fileName = "./log/" + guild.id + ".json";
+    console.log(fileName);
+    if(!fs.existsSync(fileName)) return;
 
-    let obj = JSON.parse(fs.readFileSync(targetLogName, "utf8"));
-    const notifyChannel = await client.channels.fetch(obj.notifyChannel);
+    let guildData: GuildData = JSON.parse(fs.readFileSync(fileName, "utf8"));
+    const notifyChannel = await client.channels.fetch(guildData.notifyChannel);
     if(!notifyChannel || notifyChannel.type !== ChannelType.GuildText) return;
 
-    obj.logs = obj.logs.filter((log: any) => log.time > now);
-    console.log(obj);
+    let logs = guildData.logs;
+    logs = logs.filter((log: Log) => log.time > now);
+    console.log(guildData);
 
-    for (let log of obj.logs) {
+    for (let log of logs) {
       // 人が足りない
       if (log.count < log.format) {
         continue;
@@ -115,7 +118,7 @@ cron.schedule("* * * * *", async () => {
       }
     }
 
-    fs.writeFileSync("./log.json", JSON.stringify(obj, undefined, " "));
+    fs.writeFileSync(fileName, JSON.stringify(guildData, undefined, " "));
   });
 });
 
@@ -132,10 +135,10 @@ client.on(Events.GuildCreate, async (guild) => {
 // 自分がいるサーバーにメッセージが送信されたとき
 client.on(Events.MessageCreate, async (message) => {
   if(!message.guild) return;
-  const targetLogName = "./log/" + message.guildId + ".json";
-  const existLog = fs.existsSync(targetLogName);
+  const fileName = "./log/" + message.guildId + ".json";
+  const existLog = fs.existsSync(fileName);
   let obj = existLog
-    ? JSON.parse(fs.readFileSync(targetLogName, "utf8"))
+    ? JSON.parse(fs.readFileSync(fileName, "utf8"))
     : null;
 
   // 自分のものでなく、notifyChannelに送られていて、@everyoneしているもの
@@ -153,7 +156,7 @@ client.on(Events.MessageCreate, async (message) => {
 
     // makeLogをawaitして結果をログに書き込む
     obj = await makeLog(message, obj);
-    fs.writeFileSync(targetLogName, JSON.stringify(obj, undefined, " "));
+    fs.writeFileSync(fileName, JSON.stringify(obj, undefined, " "));
   }
 });
 
@@ -177,7 +180,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   // コマンドのとき
   if(interaction.isChatInputCommand()){
-    // todo: コマンドマネージャを./commandsに作ってinteractionを丸投げする
+    commandManager(interaction);
   }
 });
 
