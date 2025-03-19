@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "node ./build/index.js"
+    "start": "node ./build/index.js",
+    "setcommand": "node ./build/setcommand.js"
   },
   "keywords": [],
   "author": "yoniha",
