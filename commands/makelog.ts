@@ -20,7 +20,7 @@ export default async (
 
   for (const s of content) {
     // unixTimeとjstTimeをゴリ押しで作って、formatも取得
-    // log.jsonで管理するのはunixTime
+    // logで管理するのはunixTime
     const unixTime = parseInt(s.substring(20, 30)) * 1000;
     const jstTime = unixTime + 9 * 60 * 60 * 1000;
     const time = new Date(jstTime);
