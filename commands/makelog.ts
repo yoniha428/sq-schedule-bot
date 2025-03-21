@@ -61,7 +61,7 @@ export default async (
       .addComponents(button2);
     const sendResult = await channel.send({ components: [row] });
 
-    console.log(sendResult.id);
+    // console.log(sendResult.id);
 
     // logに現在の模擬の情報をpushする
     guildData.logs.push(new Log(sendResult.id, unixTime, format));
