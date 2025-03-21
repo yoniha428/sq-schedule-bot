@@ -34,18 +34,17 @@ export default async (
     if (unixTime < nowTime) continue;
 
     // 日程のメッセージを送る
-    const result = await channel.send(
+    const content =
       "# " +
-        String(date.getMonth() + 1) +
-        "/" +
-        String(date.getDate()) +
-        " " +
-        String(date.getHours()).padStart(2, "0") +
-        ":" +
-        String(date.getMinutes()).padStart(2, "0") +
-        " " +
-        s.substring(10, 13)
-    );
+      String(date.getMonth() + 1) +
+      "/" +
+      String(date.getDate()) +
+      " " +
+      String(date.getHours()).padStart(2, "0") +
+      ":" +
+      String(date.getMinutes()).padStart(2, "0") +
+      " " +
+      s.substring(10, 13);
 
     // joinとdropのボタンを作って送る
     const button1 = new ButtonBuilder()
@@ -59,7 +58,8 @@ export default async (
     const row = new ActionRowBuilder<ButtonBuilder>()
       .addComponents(button1)
       .addComponents(button2);
-    const sendResult = await channel.send({ components: [row] });
+
+    const sendResult = await channel.send({ components: [row] , content: content});
 
     // console.log(sendResult.id);
 
