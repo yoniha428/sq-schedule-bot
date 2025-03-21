@@ -1,6 +1,5 @@
 config.json
 /node_modules/
-/log.json
 /build
 /.vscode
 /log/*.json

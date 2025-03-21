@@ -92,5 +92,5 @@ export default async (client: Client, interaction: ButtonInteraction) => {
   interaction.message.edit({ content: content });
 
   // ログを更新
-  fs.writeFileSync("./log.json", JSON.stringify(obj, undefined, " "));
+  fs.writeFileSync(fileName, JSON.stringify(obj, undefined, " "));
 };
