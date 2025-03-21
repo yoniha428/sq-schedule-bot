@@ -31,7 +31,7 @@ export default async (
     if (!needFormat.includes(format)) continue;
 
     // 現在より前なら飛ばす
-    if (unixTime > nowTime) continue;
+    if (unixTime < nowTime) continue;
 
     // 日程のメッセージを送る
     const result = await channel.send(
