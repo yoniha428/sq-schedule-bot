@@ -10,37 +10,41 @@ import { GuildData, Log } from "./class.js";
 
 export default async (
   message: OmitPartialGroupDMChannel<Message<boolean>>,
-  obj: GuildData
+  guildData: GuildData
 ) => {
   const content = message.content
     .split("\n")
     .filter((s) => s.substring(0, 9) !== "@everyone");
   const channel = message.channel;
-  const needFormat = obj.needFormat;
+  const needFormat = guildData.needFormat;
+  const nowTime = new Date().getTime();
 
   for (const s of content) {
     // unixTimeとjstTimeをゴリ押しで作って、formatも取得
     // logで管理するのはunixTime
     const unixTime = parseInt(s.substring(20, 30)) * 1000;
     const jstTime = unixTime + 9 * 60 * 60 * 1000;
-    const time = new Date(jstTime);
+    const date = new Date(jstTime);
     const format = parseInt(s.at(10) ?? "0");
 
     // 投票を作る必要がないフォーマットなら飛ばす
     if (!needFormat.includes(format)) continue;
 
+    // 現在より前なら飛ばす
+    if (unixTime > nowTime) continue;
+
     // 日程のメッセージを送る
     const result = await channel.send(
       "# " +
-      String(time.getMonth() + 1) +
-      "/" +
-      String(time.getDate()) +
-      " " +
-      String(time.getHours()).padStart(2, "0") +
-      ":" +
-      String(time.getMinutes()).padStart(2, "0") +
-      " " +
-      s.substring(10, 13)
+        String(date.getMonth() + 1) +
+        "/" +
+        String(date.getDate()) +
+        " " +
+        String(date.getHours()).padStart(2, "0") +
+        ":" +
+        String(date.getMinutes()).padStart(2, "0") +
+        " " +
+        s.substring(10, 13)
     );
 
     // joinとdropのボタンを作って送る
@@ -60,9 +64,9 @@ export default async (
     console.log(sendResult.id);
 
     // logに現在の模擬の情報をpushする
-    obj.logs.push(new Log(sendResult.id, unixTime, format));
+    guildData.logs.push(new Log(sendResult.id, unixTime, format));
   }
 
-  // objを返す
-  return obj
+  // guildDataを返す
+  return guildData;
 };
