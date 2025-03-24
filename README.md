@@ -1,115 +1,128 @@
-# 何ができるのか
-**sq-schedule-bot**は、[MK8DX 150cc Lounge](https://www.mk8dx-lounge.com/)のSquad Queueの参加者を自身のサーバーで管理・通知することができるDiscord上のbotです。
+# sq-schedule-bot概要
+
+**sq-schedule-bot**は、[MK8DX 150cc Lounge](https://www.mk8dx-lounge.com/)( 以降ラウンジ )のSquad Queueの参加者を自身のサーバーで管理・通知することができるDiscord上のbotです。
 
 ラウンジのsq-scheduleの内容をもとに参加者投票を作り、参加者が集まっている模擬については60分前、30分前にお知らせチャンネルにて通知します。
 
-# 使い方
-このbotは**招待するだけでは使えません**(今のところは)。具体的には、ユーザーは以下の行動によってbotを使える状態にできます。
+[!TIPS]
+MK8DX Lounge(以降単にラウンジ)はマリオカート8DXのガチ勢が対戦をするためのDiscordサーバーです。また、Squad Queueはラウンジ内にあるモードの1つで、知り合いとチームを組んでチーム戦をすることができます。( 他のモードでは、知らない人とチームになったり、1人対戦をしたりすることができます。 )
 
 
-* Discord Developer Portalから、botの準備をする。
-* Renderで、このリポジトリを用いたサーバーを構築する。
-* Google Apps Scriptから、Renderのサーバーを常時アクティブにする。
-
-Render以外のPaaSでサーバーを構築したり、GAS以外のサービスでサーバーをアクティブにすることも可能ですが、このREADMEではRender、GASの利用を想定します。
-
-## 初期設定
-
-### Discord Developer Portalの設定
-[Discord Developer Portal](https://discord.com/developers/applications)にて、New Applicationを押します。
-
-任意の名前を設定し、BotメニューからAdd Botを選択します。
-
-Oauth2メニューを選択し、SCOPESはbotのみ、BOT PERMISSIONSはAdministratorを選択します(本当はAdminまではいらない気がします。PERMISSIONSについて理解が深まったら追記しますが、コードを見ていただくと分かる通り怪しいことはしていないので安心してね💋)。
-
-URLが生成されるので、そのURLにブラウザでアクセスしてください。
-
-Discordが開き、招待画面に移るので、招待したいサーバーを選択してください。
-
-これで設定は終了ですが、BotメニューのTOKENはRender設定時に使うので、タブは開いておくと良いです。
-
-### Renderの設定
-[Render](render.com/)のアカウントを作成します。
-
-[dashboard](https://dashboard.render.com/)からAdd Newを選択し、Web Serviceを選択します。
-
-Public Git Repositoryタブを選択し、このリポジトリのURL( https://github.com/yoniha428/sq-schedule-bot )を貼り付けます。
-
-以下の通り初期設定します。
+# 目次
+- [注意](#注意)
+- [初期設定](#初期設定)
+  - [Discord全般の設定](#discord全般の設定)
+  - [bot特有の設定](#bot特有の設定)
+    - [sq-followchannelコマンド](#sq-followchannelコマンド)
+    - [sq-notifychannelコマンド](#sq-notifychannelコマンド)
+    - [sq-needformatコマンド](#sq-needformatコマンド)
+- [使い方](#使い方)
+- [使用技術](#使用技術)
+- [問い合わせ先 (Note for English speaker)](#問い合わせ先)
 
 
-| 項目 | 設定 |
-|---|---|
-| Name | 任意(ユニークである必要があります) |
-| Language | Node |
-| Branch | master |
-| Region | Singapore |
-| Build Command | npm install |
-| Start Command | node index.js |
-| Instance Type | Free |
+# 注意
 
-Advancedメニューを開きSecret Filesの設定を行います。このリポジトリにあるconfig.json.exampleを参照し、config.jsonを作成してください。
+[!IMPORTANT]
+このプロジェクトはα版です！ユーザーの皆様はβ版リリースまでお待ち下さい！
 
-discordTokenには先程のDeveloper PortalのbotメニューにあったTOKENを設定してください。
-
-notifyChannelIdには通知を送りたいチャンネルのチャンネルIDを設定してください(Discordの開発者モードをオンにして、チャンネルを右クリックするとメニューからコピーできます)。
-
-noNeedFormatには通知や管理の必要がない形式を入力します。例えば、4v4, 6v6の通知が不要ならば、
-```"noNeedFormat": [4, 6]```のようにしてください。
-
-Auto-Deployはこのリポジトリのmasterに変更があるたびにサーバーを構築し直すかどうかのオプションです。
-onにしても良いように作るつもりですが、サーバーが不安定になる可能性もあるため、現状の機能に満足している方はoffにすることを推奨します。
-
-### GASの設定
-あと1歩です。お手数をおかけして本当にすまない。
-
-あなたが持っているGoogleアカウントにログインした状態で、[GAS](https://script.google.com/home)を開きます。
-
-左のメニューから「新しいプロジェクト」を選択します。
-
-コード.gsの内容を以下の通りにします。なお、URLにはRenderのプロジェクトページに表示されている`https://プロジェクト名.onrender.com`を入力してください。
-
-```
-function main(){
-  const url = 'ここにURL'
-  UrlFetchApp.fetch(url).getContentText();
-}
-```
-
-最後に、左側のメニューからトリガーを選択し、トリガーを追加します。設定は以下のとおりです。
-
-| 項目 | 設定 |
-|---|---|
-| 実行する関数を選択 | main |
-| 実行するデプロイを選択 | Head |
-| イベントのソースを選択 | 時間主導型 |
-| 時間ベースのトリガーのタイプを選択 | 分ベースのタイマー |
-| 時間の間隔を選択（分） | 10 分おき |
-| エラー通知設定 | 任意 |
-
-### Discordサーバーの設定
-もうすこし初期設定が続きます。
-
-botを使いたいサーバー(これからサーバーというときは、RenderではなくてDiscordのサーバーのことです)に、`sq-schedule`という名前のチャンネルを作成します。
-
-ラウンジのサーバーのsq-scheduleを開き、「フォローする」を選択します。サーバーはあなたが使いたいサーバーを、チャンネルはsq-scheduleを指定します。ここであなたが使いたいサーバーを選択できないときは、サーバーの管理者に言って管理者権限を貰ってください。
-
-ここまで来れば初期設定完了です！お疲れ様でした！
+もし共同開発してくださる方がいたら、 [開発者向け情報(README内リンク)](#開発者向け情報) がありますので、ぜひ読んで参加してみてください！僕はGitHub初心者で初プロジェクトなので気楽にどうぞー！
 
 
-## botの使い方
-ラウンジのsq-scheduleに新たなSQの予定が投稿されると、自分のサーバーのsq-scheduleにもその予定が投稿され、botが自動的に投票を作ります。それぞれのユーザーは参加したい予定にCan joinしましょう。予定が入ったらdropを忘れずに。
+# 初期設定
+## Discord全般の設定
+
+まず、sq-schedule-botをサーバーに招待します。
+
+そして、Loungeサーバーの`sq-schedule`チャンネルを、自分のサーバーのどこかにフォローします。
+
+( できない場合は招待先のサーバーの権限が不足しています。ウェブフック招待権限が必要です。botを招待したい方のサーバー管理者に問い合わせてください。
+
+また、よく分からない場合は管理者権限を付与すればなんでもできるはずです。 )
+
+[!CAUTION]
+決してLoungeスタッフに聞かないでください。迷惑がかかってしまいます。
+
+
+## bot特有の設定
+
+現在は3つのコマンドによる設定が可能で、特に前半2つは必須項目です。
+
+
+### /sq-followchannelコマンド
+
+ラウンジの`sq-schedule`をフォローしたチャンネル( 以降フォローチャンネル )を、このコマンドで設定します。
+
+必須オプションとしてチャンネルの選択を求められるので、フォローしたチャンネルを選択してください。
+
+
+### /sq-notifychannelコマンド
+
+人数が集まっていたら通知してほしいチャンネル( 以降通知チャンネル )を、このコマンドで設定します。
+
+上記同様にチャンネルの選択を求められるので、お知らせをしてほしいチャンネルを選択してください。
+
+
+### /sq-needformatコマンド
+
+投票を作成したり、通知を送信してほしいフォーマットを、このコマンドで設定します。
+
+サブコマンドとして、`add`, `delete`の2つがあります。`add`で追加、`delete`で削除ができます。
+
+それぞれのコマンドを選ぶとフォーマットの選択を求められるので、追加/削除したいフォーマットを選択してください。
+
+デフォルトでは、`2v2, 3v3, 4v4, 6v6`のすべてのフォーマットが有効になっています。
+
+
+## 使い方
+
+ラウンジの`sq-schedule`チャンネルに新たなSQの予定が投稿されると、自分のサーバーのフォローチャンネルにもその予定が投稿され、botが自動的に投票を作ります。
+
+それぞれのユーザーは参加したい予定にCan joinしましょう。他の予定が入ったらdropを忘れずに。
 
 人数が集まっている模擬の60分前、30分前になると、botがお知らせチャンネルに参加者をメンションして通知してくれます。
 
-注意！sq-scheduleにて@everyoneで始まる発言をするとbotが謎の投票を作ります！邪魔だと思うので、sq-scheduleはbot専用のチャンネルにすることをおすすめします。
+[!WARNING]
+フォローチャンネルにて@everyoneで始まる発言をすると、botが謎の投票を作ります！邪魔だと思うので、フォローチャンネルはbot専用のチャンネルにすることをおすすめします。
+
 
 # 使用技術
-<img src="https://img.shields.io/badge/-Node.js-555555.svg?logo=node.js&style=for-the-badge">
-<img src="https://img.shields.io/badge/-Discord.js-7289DA.svg?logo=discord&style=for-the-badge">
+<img src="https://img.shields.io/badge/TypeScript-769BC6.svg?logo=typescript&style=for-the-badge&labelColor=EEEEEE" height="50" alt="TypeScript">
+<img src="https://img.shields.io/badge/-Node.js-769BC6.svg?logo=node.js&style=for-the-badge&labelColor=EEEEEE" height="50" alt="Node.js">
+<img src="https://img.shields.io/badge/-Discord.js-769BC6.svg?logo=discord&style=for-the-badge&labelColor=EEEEEE" height="50" alt="discord.js">
 
-# issueについて
+↑このアイコンかっこよくないですか？shields.ioのbadgeってやつです。
 
-誤字とかでもバンバン立ててくれ～
+
+# 開発者向け情報
+
+上にもある通り、このbotは開発中のα版です。共同開発者を募集しているので、協力していただける方はTwitter [@yoniha](https://x.com/yoniha428) までDMをください！
+
+使用技術はTypeScript、Node.js、discord.js( Discord API用のJavaScriptライブラリ )などです。
+
+GitHub初めてのプロジェクトなので、お手柔らかにお願いします！勉強させてください！
+
+
+## issueについて
+
+誤字とかでもバンバン立ててほしいです！
 
 デバッグは頑張りますが、機能追加については暇だったらやるかも程度に考えていただければと思います。
+
+
+## Pull requestについて
+
+issueに対応するようにリクエストしていただければと思います！
+
+Discord botでCI/CDを構築するのが難しくて( 詳しい人教えて下さい～ )、人の目で見てからmergeすると思うので、見やすくしていただけると非常にありがたいです。( 逆に僕のコードが見にくかったらそれもissue立てちゃって大丈夫です。 )
+
+
+# 問い合わせ先
+
+使い方、共同開発希望どちらもTwitter [@yoniha428](https://x.com/yoniha428) のDMまでお願いします！
+
+このREADMEを読んだうえで分からないことなどあればバンバン連絡してください！改善に繋がります！
+
+I'm sorry that I didn't make `README-en.md`. (404 No enought English skill found)
+
+Feel free to send me DMs so that I can improve my English & we can develop together!
