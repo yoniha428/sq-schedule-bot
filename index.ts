@@ -19,7 +19,7 @@ const { discordToken } = config;
 import joinCommand from "./commands/join.js";
 import dropCommand from "./commands/drop.js";
 import makeLog from "./commands/makelog.js";
-import logInit from "./commands/loginit.js"
+import logInit from "./commands/loginit.js";
 import { GuildData, Log } from "./commands/class.js";
 import commandManager from "./commands/commandmanager.js";
 
@@ -95,8 +95,8 @@ cron.schedule("* * * * *", async () => {
         continue;
       }
 
-      // 何分後に模擬があるか
-      const minutesAfter = new Date(log.time - now + 30 * 1000).getMinutes();
+      // 何分後に模擬があるか(30 * 1000はバッファ、60 * 1000はミリ秒→分)
+      const minutesAfter = Math.floor(new Date(log.time - now + 30 * 1000).getTime() / (60 * 1000));
 
       // 60分後通知
       if (now + 60 * 60 * 1000 > log.time && log.notified.in60min === 0) {
