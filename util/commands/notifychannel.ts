@@ -5,8 +5,8 @@ import {
 } from "discord.js";
 import path from "path";
 import fs from "fs";
-import { GuildData } from "./class.js";
-import logInit from "./loginit.js";
+import { GuildData } from "../class.js";
+import logInit from "../loginit.js";
 const dirname = import.meta.dirname;
 
 export default async (interaction: ChatInputCommandInteraction) => {
@@ -41,8 +41,8 @@ export default async (interaction: ChatInputCommandInteraction) => {
   let guildData: GuildData = GuildData.fromJSON(
     JSON.parse(fs.readFileSync(fileName, "utf8"))
   );
-  guildData.setFollowChannel(channel);
+  guildData.setNotifyChannel(channel);
   fs.writeFileSync(fileName, JSON.stringify(guildData, undefined, " "));
 
-  interaction.editReply("フォローチャンネルを変更しました");
+  interaction.editReply("通知チャンネルを変更しました");
 };

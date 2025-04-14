@@ -8,10 +8,10 @@ import fs from "fs";
 import path from "path";
 const dirname = import.meta.dirname;
 
-import { GuildData, Log } from "./class.js";
-import logInit from "./loginit.js";
+import { Log, GuildData } from "../class.js";
+import logInit from "../loginit.js";
 
-export default async (client: Client, interaction: ButtonInteraction) => {
+export default async (interaction: ButtonInteraction) => {
   if (
     !interaction.guild ||
     !interaction.channel ||
@@ -30,17 +30,15 @@ export default async (client: Client, interaction: ButtonInteraction) => {
   if (!fs.existsSync(fileName)) {
     logInit(interaction.guild, interaction.channel);
   }
-  const guildDataBefore: GuildData = JSON.parse(fs.readFileSync(fileName, "utf8"));
-
-  const matchLog: Array<Log> = guildDataBefore.logs.filter(
+  let obj: GuildData = JSON.parse(fs.readFileSync(fileName, "utf8"));
+  const matchLog: Array<Log> = obj.logs.filter(
     (log: Log) => log.id === interaction.message.id
   );
 
   // 2個以上マッチ
   if (matchLog.length > 1) {
     interaction.editReply(
-      "一致するメッセージIDがログに2つ以上あります。\n" +
-        "管理者に連絡してください。"
+      "一致するメッセージIDがログに2つ以上あります。\n管理者に連絡してください。"
     );
     return;
   }
@@ -62,27 +60,19 @@ export default async (client: Client, interaction: ButtonInteraction) => {
     return;
   }
 
-  // 参加済み
-  if (log.participants.includes(userId)) {
-    interaction.editReply({ content: "既に参加しています" });
+  // 参加していない
+  if (!log.participants.includes(userId)) {
+    interaction.editReply("参加していません");
     return;
   }
 
   // 正常な処理
-  log.count++;
-  log.participants.push(userId);
+  log.count--;
+  log.participants = log.participants.filter((id: string) => id !== userId);
 
   // メッセージ編集
-  // 参加者一覧を取得
-  // todo! participantsNameはPromise.all()とlog.participants.map()でいけそう
-  // let participantsName = [];
-  // for (const id of log.participants) {
-  //   const username = (await client.users.fetch(id)).username;
-  //   // console.log(username);
-  //   participantsName.push(username);
-  // }
   const participantsName = (
-    await Promise.all(log.participants.map((id) => client.users.fetch(id)))
+    await Promise.all(log.participants.map((id) => interaction.client.users.fetch(id)))
   ).map((user) => user.username);
 
   const dateContent = interaction.message.content.split("\n").at(0);
@@ -105,7 +95,7 @@ export default async (client: Client, interaction: ButtonInteraction) => {
 
   await interaction.deleteReply();
   interaction.message.edit({ content: content });
-
+  
   // ログを更新
-  fs.writeFileSync(fileName, JSON.stringify(guildDataBefore, undefined, " "));
+  fs.writeFileSync(fileName, JSON.stringify(obj, undefined, " "));
 };

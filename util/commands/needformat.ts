@@ -1,8 +1,8 @@
 import { ChatInputCommandInteraction } from "discord.js";
-import { GuildData } from "./class.js";
+import { GuildData } from "../class.js";
 import fs from "fs";
 import path from "path";
-import logInit from "./loginit.js";
+import logInit from "../loginit.js";
 const dirname = import.meta.dirname;
 
 export default async (interaction: ChatInputCommandInteraction) => {

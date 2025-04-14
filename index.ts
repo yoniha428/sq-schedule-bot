@@ -16,12 +16,10 @@ import config from "./config.json" with { type: "json" };
 const { discordToken } = config;
 
 // 自作コマンドのimport
-import joinCommand from "./commands/join.js";
-import dropCommand from "./commands/drop.js";
-import makeLog from "./commands/makelog.js";
-import logInit from "./commands/loginit.js";
-import { GuildData, Log } from "./commands/class.js";
-import commandManager from "./commands/commandmanager.js";
+import { GuildData, Log } from "./util/class.js";
+import commandManager from "./util/commandmanager.js";
+import logInit from "./util/loginit.js";
+import makeLog from "./util/makelog.js"
 
 // 各種初期化
 const client = new Client({
@@ -165,26 +163,7 @@ client.on(Events.MessageCreate, async (message) => {
 
 // interaction作成時
 client.on(Events.InteractionCreate, async (interaction) => {
-  // ボタンのとき
-  if (interaction.isButton()) {
-    // 考え中のリプライ
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-    // joinボタン
-    if (interaction.customId === "join") {
-      joinCommand(client, interaction);
-    }
-
-    // dropボタン
-    if (interaction.customId === "drop") {
-      dropCommand(client, interaction);
-    }
-  }
-
-  // コマンドのとき
-  if(interaction.isChatInputCommand()){
-    commandManager(interaction);
-  }
+  commandManager(interaction);
 });
 
 const result = await client.login(discordToken);
