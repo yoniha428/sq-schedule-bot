@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node ./build/index.js",
-    "setcommand": "node ./build/setcommand.js"
+    "setcommand": "node ./build/util/setcommand.js"
   },
   "keywords": [],
   "author": "yoniha",
