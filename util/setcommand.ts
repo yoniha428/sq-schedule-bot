@@ -7,7 +7,7 @@ import {
   Routes,
   SlashCommandSubcommandGroupBuilder,
 } from "discord.js";
-import config from "./config.json" with { type: "json" };
+import config from "../config.json" with { type: "json" };
 const { discordToken, clientId } = config;
 
 // 必要なフォーマットの設定
@@ -17,7 +17,13 @@ const setNeedFormat = new SlashCommandBuilder()
   .addSubcommandGroup(
     new SlashCommandSubcommandGroupBuilder()
       .setName("subcommands")
-      .setDescription("追加/削除")
+      .setDescription("確認/追加/削除")
+
+      .addSubcommand(
+        new SlashCommandSubcommandBuilder()
+          .setName("confirm")
+          .setDescription("通知するフォーマットの確認")
+      )
 
       .addSubcommand(
         new SlashCommandSubcommandBuilder()

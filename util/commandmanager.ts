@@ -12,18 +12,22 @@ export default async (interaction: Interaction) => {
     if (interaction.customId === "join") {
       joinCommand(interaction);
     }
-
     if (interaction.customId === "drop") {
       dropCommand(interaction);
     }
   }
-  if (interaction.isChatInputCommand()) {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    if (interaction.commandName === "sq-needformat") needFormat(interaction);
-    if (interaction.commandName === "sq-notifychannel")
+  if (interaction.isChatInputCommand()) {
+    await interaction.deferReply();
+
+    if (interaction.commandName === "sq-needformat"){
+      needFormat(interaction);
+    }
+    if (interaction.commandName === "sq-notifychannel"){
       notifyChannel(interaction);
-    if (interaction.commandName === "sq-followchannel")
+    }
+    if (interaction.commandName === "sq-followchannel"){
       followChannel(interaction);
+    }
   }
 };
