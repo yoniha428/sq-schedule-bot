@@ -42,7 +42,7 @@ const server = http.createServer((_req, res) => {
 const port = parseInt(process.env.PORT || "10000");
 server.listen(port);
 
-async function sendNotify(log: Log, message: string, channel: TextChannel) {
+async function sendNotify(log: Log, message: string, channel: TextChannel): Promise<string> {
   console.log("trying to send notification");
   let sendMessage = "";
   for (const userId of log.participants) {
@@ -54,7 +54,6 @@ async function sendNotify(log: Log, message: string, channel: TextChannel) {
   return new Promise((resolve, reject) => {
     if (result) return resolve(message);
     else {
-      console.error("send message failed");
       return reject("send message failed");
     }
   });
@@ -78,7 +77,6 @@ cron.schedule("* * * * *", async () => {
 
   client.guilds.cache.each(async (guild) => {
     const fileName = "./log/" + guild.id + ".json";
-    console.log(fileName);
     if(!fs.existsSync(fileName)) return;
 
     let guildData: GuildData = JSON.parse(fs.readFileSync(fileName, "utf8"));
@@ -86,10 +84,13 @@ cron.schedule("* * * * *", async () => {
     if(!notifyChannel || notifyChannel.type !== ChannelType.GuildText) return;
 
     let logs = guildData.logs;
-    logs = logs.filter((log: Log) => log.time > now);
-    console.log(guildData);
 
     for (let log of logs) {
+      // 過ぎている
+      if (log.time <= now){
+        await notifyChannel.messages.delete(log.id).catch(console.error);
+      }
+
       // 人が足りない
       if (log.count < log.format) {
         continue;
@@ -106,17 +107,19 @@ cron.schedule("* * * * *", async () => {
           (log.count > log.format
             ? "\n人数超過です！話し合って参加者を決めましょう！"
             : "");
-        const result = await sendNotify(log, message, notifyChannel);
+        const result = await sendNotify(log, message, notifyChannel).catch(console.error);
         if (result) log.notified.in60min = 1;
       }
 
       // 30分後通知
       if (now + 30 * 60 * 1000 > log.time && log.notified.in30min === 0) {
         const message = minutesAfter + "分後に模擬があります！\n!cした？";
-        const result = await sendNotify(log, message, notifyChannel);
+        const result = await sendNotify(log, message, notifyChannel).catch(console.error);
         if (result) log.notified.in30min = 1;
       }
     }
+
+    guildData.logs = logs.filter((log: Log) => log.time > now);
 
     fs.writeFileSync(fileName, JSON.stringify(guildData, undefined, " "));
   });
