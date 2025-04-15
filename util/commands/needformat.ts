@@ -9,7 +9,7 @@ export default async (interaction: ChatInputCommandInteraction) => {
   if (!interaction.guild) return;
   const fileName = path.resolve(
     dirname,
-    "../../log/" + interaction.guildId + ".json"
+    "../../../log/" + interaction.guildId + ".json"
   );
 
   if (!fs.existsSync(fileName)) {
@@ -24,8 +24,8 @@ export default async (interaction: ChatInputCommandInteraction) => {
 
   if (subcommand === "confirm") {
     interaction.editReply(
-      "### 通知する設定となっているフォーマット:\n" +
-        needFormat.map((num) => "> " + num + "v" + num).join("\n")
+      "通知する設定となっているフォーマット\n# " +
+        needFormat.map((num) => num + "v" + num).join(", ")
     );
     return;
   }

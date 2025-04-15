@@ -23,7 +23,7 @@ export default async (interaction: ButtonInteraction) => {
   // idが一致するログを抽出
   const fileName = path.resolve(
     dirname,
-    "../../log/" + interaction.guildId + ".json"
+    "../../../log/" + interaction.guildId + ".json"
   );
 
   if (!fs.existsSync(fileName)) {

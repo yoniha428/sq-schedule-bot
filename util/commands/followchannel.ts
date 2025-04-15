@@ -32,7 +32,7 @@ export default async (interaction: ChatInputCommandInteraction) => {
 
   const fileName = path.resolve(
     dirname,
-    "../../log/" + interaction.guildId + ".json"
+    "../../../log/" + interaction.guildId + ".json"
   );
   if (!fs.existsSync(fileName)) {
     logInit(interaction.guild, null);
