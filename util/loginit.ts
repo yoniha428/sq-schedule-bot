@@ -5,9 +5,9 @@ import { GuildData } from "./class.js";
 
 const needFormatDefault = [2, 3, 4, 6];
 
-export default async (guild: Guild, channel: TextChannel | null) => {
+export default (guild: Guild, channel: TextChannel | null) => {
   const targetLogName = "./log/" + guild.id + ".json";
-  const obj = new GuildData(channel?.id ?? "", channel?.id ?? "", needFormatDefault);
+  const guildData = new GuildData(channel?.id ?? "", channel?.id ?? "", needFormatDefault);
   if (channel) {
     channel.send(
       "ラウンジのsq-scheduleをフォローするチャンネルと、お知らせチャンネルをこのチャンネルに設定しました。\n" +
@@ -15,5 +15,6 @@ export default async (guild: Guild, channel: TextChannel | null) => {
         "sq-needformatコマンドによって、通知が必要なフォーマットの設定をすることもできます。"
     );
   }
-  fs.writeFileSync(targetLogName, JSON.stringify(obj, undefined, " "));
+  fs.writeFileSync(targetLogName, JSON.stringify(guildData, undefined, " "));
+  return guildData;
 };

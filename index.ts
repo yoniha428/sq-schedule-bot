@@ -138,26 +138,26 @@ client.on(Events.MessageCreate, async (message) => {
   if(!message.guild) return;
   const fileName = "./log/" + message.guildId + ".json";
   const existLog = fs.existsSync(fileName);
-  let obj = existLog
-    ? JSON.parse(fs.readFileSync(fileName, "utf8"))
+  let guildData = existLog
+    ? JSON.parse(fs.readFileSync(fileName, "utf8")) as GuildData
     : null;
 
   // 自分のものでなく、notifyChannelに送られていて、@everyoneしているもの
   if (
     message.author.id !== client.user?.id &&
-    (!existLog || (message.channel.id === obj.followChannel)) &&
+    (!guildData || (message.channel.id === guildData.followChannel)) &&
     message.content.substring(0, 9) === "@everyone" &&
     message.channel.type === ChannelType.GuildText
   ){
 
     // ログがないなら作ればいいじゃない
-    if(!existLog){
-      logInit(message.guild, message.channel);
+    if(!guildData){
+      guildData = logInit(message.guild, message.channel);
     }
 
     // makeLogをawaitして結果をログに書き込む
-    obj = await makeLog(message, obj);
-    fs.writeFileSync(fileName, JSON.stringify(obj, undefined, " "));
+    guildData = await makeLog(message, guildData);
+    fs.writeFileSync(fileName, JSON.stringify(guildData, undefined, " "));
   }
 });
 
